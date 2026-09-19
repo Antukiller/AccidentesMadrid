@@ -1,45 +1,55 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using AccidentesMadrid.Enum;
+﻿using AccidentesMadrid.Enum;
 
 namespace AccidentesMadrid.Models;
 
 public class Accidentes {
-    public int Id { get; init; }
+    public int Id { get; internal set; }
 
     public string NumeroExpediente { get; init; } = string.Empty;
 
     public DateOnly Fecha { get; init; }
 
-    public TimeOnly Hora { get; init; } = TimeOnly.FromDateTime(DateTime.UtcNow);
-    
-    public string Localizacion { get; init; }
-    
-    public int NumeroCalle { get; init; }
-    
+    public TimeOnly Hora { get; init; }
+
+    public string Localizacion { get; init; } = string.Empty;
+
+    public int? NumeroCalle { get; init; }
+
     public int CodigoDistrito { get; init; }
-    
-    public string Distrito { get; init; }
-    
-    public TipoAccidente Accidente { get; init; }
-    
-    public string EstadoMeteorlogico { get; init; }
-    
-    public string TipoVehiculo { get; init; }
-    
-    public string TipoPersona { get; init; }
-    
-    public string rangoEdad { get; init; }
-    
+
+    public string Distrito { get; init; } = string.Empty;
+
+    public string TipoAccidente { get; init; } = string.Empty;
+
+    public string EstadoMeteorologico { get; init; } = string.Empty;
+
+    public string TipoVehiculo { get; init; } = string.Empty;
+
+    public string TipoPersona { get; init; } = string.Empty;
+
+    public string RangoEdad { get; init; } = string.Empty;
+
     public Sexo Sexo { get; init; }
-    
-    public string lesividad { get; init; }
-    
-    public int CoordenadaYUtm { get; init; }
-    
-    public int CoordenadaXUtm { get; init; }
-    
-    public bool positivaAlcohol { get; init; }
-    
-    public bool positivaDroga { get; init; }
-    
+
+    public CodigoAccidente CodigoAccidente { get; init; }
+
+    public string Lesividad { get; init; } = string.Empty;
+
+    public double CoordenadaXUtm { get; init; }
+
+    public double CoordenadaYUtm { get; init; }
+
+    public bool PositivaAlcohol { get; init; }
+
+    public bool PositivaDroga { get; init; }
+
+    public int Anio => Fecha.Year;
+
+    public int Mes => Fecha.Month;
+
+    public int Dia => Fecha.Day;
+
+    public DayOfWeek DiaSemana => Fecha.DayOfWeek;
+
+    public bool EsFinDeSemana => DiaSemana is DayOfWeek.Saturday or DayOfWeek.Sunday;
 }

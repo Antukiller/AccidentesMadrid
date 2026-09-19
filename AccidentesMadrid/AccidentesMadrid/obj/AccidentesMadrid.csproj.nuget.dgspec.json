@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Antukiller\\RiderProjects\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj": {}
+    "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Antukiller\\RiderProjects\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj": {
+    "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Antukiller\\RiderProjects\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj",
+        "projectUniqueName": "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj",
         "projectName": "AccidentesMadrid",
-        "projectPath": "C:\\Users\\Antukiller\\RiderProjects\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj",
-        "packagesPath": "C:\\Users\\Antukiller\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Antukiller\\RiderProjects\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\obj\\",
+        "projectPath": "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid.csproj",
+        "packagesPath": "C:\\Users\\antoi\\.nuget\\packages\\",
+        "outputPath": "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Antukiller\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\antoi\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -43,6 +43,36 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
+          "dependencies": {
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[33.1.0, )"
+            },
+            "Microsoft.Data.Analysis": {
+              "target": "Package",
+              "version": "[0.23.0, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[10.0.12, )"
+            },
+            "Microsoft.Extensions.Configuration.Binder": {
+              "target": "Package",
+              "version": "[10.0.12, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[10.0.12, )"
+            },
+            "Serilog": {
+              "target": "Package",
+              "version": "[4.4.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.1.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -59,7 +89,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.112/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
