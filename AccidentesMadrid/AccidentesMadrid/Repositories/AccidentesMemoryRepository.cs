@@ -26,20 +26,22 @@ public class AccidentesMemoryRepository : IAccidenteMemoryRepository
         HeaderValidated = null,
     };
 
-    private AccidentesMemoryRepository()
-    {
-    }
-
-    public Task<IEnumerable<Accidentes>> GetAllAsync(int pagina, int tamanhoPagina, bool isDeleteInclude)
-    {
+    private AccidentesMemoryRepository() { }
+    
+    public Task<IEnumerable<Accidentes>> GetAllAsync(int pagina, int tamanhoPagina, bool isDeleteInclude = false) {
         _logger.Debug("Obtenemos accidentes - página {Pagina}, tamaño {Tamanho}", pagina, tamanhoPagina);
-        return Task.FromResult(_accidentes.Skip(pagina * tamanhoPagina).Take(tamanhoPagina));
+
+        // Aplicamos la fórmula de paginación (pagina - 1) para que la página 1 empiece desde el inicio
+        var resultado = _accidentes
+            .OrderBy(a => a.Id) // Garantiza que las páginas siempre vengan en el mismo orden
+            .Skip((pagina - 1) * tamanhoPagina)
+            .Take(tamanhoPagina)
+            .ToList();
+
+        return Task.FromResult<IEnumerable<Accidentes>>(resultado);
     }
 
-    public IEnumerable<Accidentes> GetAll() => _accidentes;
-
-    public Task<IEnumerable<Accidentes>> CargarArchivoCsvAsync()
-    {
+    public async Task<IEnumerable<Accidentes>> CargarArchivoCsvAsync() {
         var dataDir = ResolverDirectorioDatos();
         var ficheros = Directory.GetFiles(dataDir, "*.csv").OrderBy(f => f).ToList();
 
@@ -48,32 +50,41 @@ public class AccidentesMemoryRepository : IAccidenteMemoryRepository
 
         _accidentes.Clear();
 
-        var id = 0;
-        foreach (var fichero in ficheros)
-        {
-            var registros = LeerFichero(fichero).ToList();
-            foreach (var registro in registros)
-                registro.Id = ++id;
+        // 1. Lanzamos la lectura y parseo de los 3 archivos a la vez en paralelo
+        var tareasLectura = ficheros.Select(fichero => Task.Run(() => LeerFichero(fichero))).ToArray();
 
-            _logger.Information("Leídos {N} accidentes de {Fichero}", registros.Count, Path.GetFileName(fichero));
-            _accidentes.AddRange(registros);
+        // 2. Esperamos a que los 3 archivos terminen de procesarse en segundo plano
+        var resultadosPorFichero = await Task.WhenAll(tareasLectura);
+
+        // 3. Combinamos todas las listas procesadas en tu lista principal
+        var todosLosRegistros = resultadosPorFichero.SelectMany(r => r).ToList();
+
+        // 4. Asignamos los IDs de forma secuencial y segura
+        var id = 0;
+        foreach (var registro in todosLosRegistros)
+        {
+            registro.Id = ++id;
+            _accidentes.Add(registro);
         }
 
         _logger.Information("Total accidentes combinados: {Total}", _accidentes.Count);
-        return Task.FromResult<IEnumerable<Accidentes>>(_accidentes);
+        return _accidentes;
     }
 
-    private IEnumerable<Accidentes> LeerFichero(string fichero)
-    {
+    private List<Accidentes> LeerFichero(string fichero) {
         using var reader = new StreamReader(fichero, Encoding.UTF8);
         using var csv = new CsvReader(reader, _csvConfiguration);
+
         csv.Context.RegisterClassMap<AccidenteMapper>();
-        foreach (var registro in csv.GetRecords<Accidentes>())
-            yield return registro;
+
+        // CsvHelper parsea todo el archivo a memoria RAM antes de cerrar el stream
+        var registros = csv.GetRecords<Accidentes>().ToList();
+
+        _logger.Information("Leídos {N} accidentes de {Fichero}", registros.Count, Path.GetFileName(fichero));
+        return registros;
     }
 
-    private static string ResolverDirectorioDatos()
-    {
+    private static string ResolverDirectorioDatos() {
         var directorio = Directory.GetCurrentDirectory();
         while (directorio is not null)
         {
