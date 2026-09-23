@@ -162,12 +162,163 @@ public class AccidentesServices : IAccidentesServices {
         sw.Stop();
         resultados.Add(new ResultadoConsulta(15, "Proporción hombre/mujer", proporcion, sw.Elapsed));
 
+        // Consulta 16: Distritos con más peatones
+        sw.Restart();
+        var distritosPeatones = lista
+            .Where(EsPeaton)
+            .GroupBy(a => a.Distrito)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g => $"{g.Key} ({g.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(16, "Distritos con más peatones", string.Join(", ", distritosPeatones), sw.Elapsed));
+
+        // Consulta 17: Fin de semana vs entre semana
+        sw.Restart();
+        var fds = lista.Count(EsFinDeSemana);
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(17, "Fin de semana vs entre semana", $"Fin de semana: {fds} | Entre semana: {lista.Count - fds}", sw.Elapsed));
+
+        // Consulta 18: Media de accidentes por día
+        sw.Restart();
+        var diasConAccidentes = lista.GroupBy(a => a.Fecha).Count();
+        var mediaPorDia = diasConAccidentes == 0 ? 0 : lista.Count / (double)diasConAccidentes;
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(18, "Media de accidentes por día", $"{mediaPorDia:F2} por día ({diasConAccidentes} días)", sw.Elapsed));
+
+        // Consulta 19: Accidentes con alcohol + droga
+        sw.Restart();
+        var alcoholYDroga = lista.Count(a => a.PositivaAlcohol && a.PositivaDroga);
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(19, "Accidentes con alcohol + droga", alcoholYDroga.ToString("N0"), sw.Elapsed));
+
+        // Consulta 20: Rangos de edad más vulnerables (peatones)
+        sw.Restart();
+        var edadPeatones = lista
+            .Where(EsPeaton)
+            .GroupBy(a => a.RangoEdad)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g => $"{g.Key} ({g.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(20, "Rangos de edad más vulnerables (peatones)", string.Join(", ", edadPeatones), sw.Elapsed));
+
+        // Consulta 21: Distritos con más positivos en alcohol
+        sw.Restart();
+        var distritosAlcohol = lista
+            .Where(a => a.PositivaAlcohol)
+            .GroupBy(a => a.Distrito)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g => $"{g.Key} ({g.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(21, "Distritos con más positivos en alcohol", string.Join(", ", distritosAlcohol), sw.Elapsed));
+
+        // Consulta 22: Accidentes por código de distrito
+        sw.Restart();
+        var porCodigoDistrito = lista
+            .GroupBy(a => a.CodigoDistrito)
+            .OrderByDescending(g => g.Count())
+            .Select(g => $"{g.Key}: {g.Count()}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(22, "Accidentes por código de distrito", string.Join(", ", porCodigoDistrito), sw.Elapsed));
+
+        // Consulta 23: Accidentes por año
+        sw.Restart();
+        var porAnio = lista
+            .GroupBy(a => a.Fecha.Year)
+            .OrderByDescending(g => g.Key)
+            .Select(g => $"{g.Key}: {g.Count()}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(23, "Accidentes por año", string.Join(", ", porAnio), sw.Elapsed));
+
+        // Consulta 24: Evolución mensual por año (clave compuesta año-mes)
+        sw.Restart();
+        var evolucionMensual = lista
+            .GroupBy(a => (Anio: a.Fecha.Year, Mes: a.Fecha.Month))
+            .OrderBy(g => g.Key.Anio).ThenBy(g => g.Key.Mes)
+            .Select(g => $"{g.Key.Anio}-{g.Key.Mes:00}: {g.Count()}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(24, "Evolución mensual por año", string.Join(", ", evolucionMensual), sw.Elapsed));
+
+        // Consulta 25: Distrito con más accidentes por año (PLINQ)
+        sw.Restart();
+        var distritoPorAnio = lista.AsParallel()
+            .GroupBy(a => a.Fecha.Year)
+            .Select(g => (Anio: g.Key,
+                Top: g.GroupBy(x => x.Distrito).OrderByDescending(x => x.Count()).First()))
+            .OrderBy(x => x.Anio)
+            .Select(x => $"{x.Anio}: {x.Top.Key} ({x.Top.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(25, "Distrito con más accidentes por año (PLINQ)", string.Join(", ", distritoPorAnio), sw.Elapsed));
+
+        // Consulta 26: Tendencia de alcohol por año
+        sw.Restart();
+        var tendenciaAlcohol = lista
+            .Where(a => a.PositivaAlcohol)
+            .GroupBy(a => a.Fecha.Year)
+            .OrderBy(g => g.Key)
+            .Select(g => $"{g.Key}: {g.Count()}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(26, "Tendencia de alcohol por año", string.Join(", ", tendenciaAlcohol), sw.Elapsed));
+
+        // Consulta 27: Comparativa fin de semana vs entre semana por año
+        sw.Restart();
+        var fdsPorAnio = lista
+            .GroupBy(a => a.Fecha.Year)
+            .OrderBy(g => g.Key)
+            .Select(g => $"{g.Key}: FDS {g.Count(EsFinDeSemana)} / entre semana {g.Count() - g.Count(EsFinDeSemana)}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(27, "Fin de semana vs entre semana por año", string.Join(", ", fdsPorAnio), sw.Elapsed));
+
+        // Consulta 28: Hora pico por año (PLINQ)
+        sw.Restart();
+        var horaPicoAnio = lista.AsParallel()
+            .GroupBy(a => a.Fecha.Year)
+            .Select(g => (Anio: g.Key,
+                Hora: g.GroupBy(x => x.Hora.Hour).OrderByDescending(h => h.Count()).First()))
+            .OrderBy(x => x.Anio)
+            .Select(x => $"{x.Anio}: las {x.Hora.Key:00}:00 ({x.Hora.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(28, "Hora pico por año (PLINQ)", string.Join(", ", horaPicoAnio), sw.Elapsed));
+
+        // Consulta 29: Lesión más frecuente por año (PLINQ)
+        sw.Restart();
+        var lesionAnio = lista.AsParallel()
+            .GroupBy(a => a.Fecha.Year)
+            .Select(g => (Anio: g.Key,
+                Lesion: g.GroupBy(x => x.Lesividad).OrderByDescending(x => x.Count()).First()))
+            .OrderBy(x => x.Anio)
+            .Select(x => $"{x.Anio}: {x.Lesion.Key} ({x.Lesion.Count()})")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(29, "Lesión más frecuente por año (PLINQ)", string.Join(", ", lesionAnio), sw.Elapsed));
+
+        // Consulta 30: Evolución de peatones por año
+        sw.Restart();
+        var peatonesAnio = lista
+            .Where(EsPeaton)
+            .GroupBy(a => a.Fecha.Year)
+            .OrderBy(g => g.Key)
+            .Select(g => $"{g.Key}: {g.Count()}")
+            .ToList();
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(30, "Evolución de peatones por año", string.Join(", ", peatonesAnio), sw.Elapsed));
+
         return resultados;
     }
 
     // ---- Construcción del DataFrame a partir de los objetos ya mapeados ----
-    // No usamos DataFrame.LoadCsv porque el CSV crudo no tiene columnas derivadas
-    // (mes, dia_semana, fin_semana...) ni el alcohol/droga como booleano.
     public static DataFrame ConstruirDataFrame(List<Accidentes> datos) => new(
         new PrimitiveDataFrameColumn<int>("anio", datos.Select(a => a.Fecha.Year)),
         new PrimitiveDataFrameColumn<int>("mes", datos.Select(a => a.Fecha.Month)),
@@ -281,6 +432,155 @@ public class AccidentesServices : IAccidentesServices {
         sw.Stop();
         resultados.Add(new ResultadoConsulta(13, "Tipo de vehículo más implicado", string.Join(", ", vehList), sw.Elapsed));
 
+        // Máscara reutilizable: ¿es peatón/a? (se usa en 14, 16, 20 y 30)
+        var peatonesMask = (PrimitiveDataFrameColumn<bool>)(
+            df["tipo_persona"].ElementwiseEquals("Peatón") |
+            df["tipo_persona"].ElementwiseEquals("Peatón (atropello sc)"));
+
+        // 14. Accidentes con peatones
+        sw.Restart();
+        var accidentesPeatones = df.Filter(peatonesMask).Rows.Count;
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(14, "Accidentes con peatones", accidentesPeatones.ToString("N0"), sw.Elapsed));
+
+        // 15. Proporción hombre/mujer
+        sw.Restart();
+        var hombres = df.Filter(df["sexo"].ElementwiseEquals("Hombre")).Rows.Count;
+        var mujeres = df.Filter(df["sexo"].ElementwiseEquals("Mujer")).Rows.Count;
+        var proporcion = mujeres == 0 ? "Sin mujeres" : $"{hombres / (double)mujeres:F2}";
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(15, "Proporción hombre/mujer", proporcion, sw.Elapsed));
+
+        // 16. Distritos con más peatones
+        sw.Restart();
+        var distritosPeatones = Agrupar(df.Filter(peatonesMask), "distrito").OrderByDescending("uno", false).Head(5);
+        var distritosPeatonesList = new List<string>();
+        for (int i = 0; i < distritosPeatones.Rows.Count; i++)
+            distritosPeatonesList.Add($"{distritosPeatones["distrito"][i]} ({Convert.ToInt64(distritosPeatones["uno"][i]):0})");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(16, "Distritos con más peatones", string.Join(", ", distritosPeatonesList), sw.Elapsed));
+
+        // 17. Fin de semana vs entre semana
+        sw.Restart();
+        var fds = df.Filter(df["fin_semana"].ElementwiseEquals(true)).Rows.Count;
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(17, "Fin de semana vs entre semana", $"Fin de semana: {fds} | Entre semana: {df.Rows.Count - fds}", sw.Elapsed));
+
+        // 18. Media de accidentes por día: total / nº días distintos con accidentes
+        sw.Restart();
+        var diasConAccidentes = Agrupar(df, "fecha").Rows.Count;
+        var mediaPorDia = diasConAccidentes == 0 ? 0 : df.Rows.Count / (double)diasConAccidentes;
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(18, "Media de accidentes por día", $"{mediaPorDia:F2} por día ({diasConAccidentes} días)", sw.Elapsed));
+
+        // 19. Accidentes con alcohol + droga (ambas condiciones)
+        sw.Restart();
+        var alcoholYDroga = df.Filter((PrimitiveDataFrameColumn<bool>)(
+            df["alcohol"].ElementwiseEquals(true) & df["droga"].ElementwiseEquals(true))).Rows.Count;
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(19, "Accidentes con alcohol + droga", alcoholYDroga.ToString("N0"), sw.Elapsed));
+
+        // 20. Rangos de edad más vulnerables (peatones)
+        sw.Restart();
+        var edadPeatones = Agrupar(df.Filter(peatonesMask), "rango_edad").OrderByDescending("uno", false).Head(5);
+        var edadPeatonesList = new List<string>();
+        for (int i = 0; i < edadPeatones.Rows.Count; i++)
+            edadPeatonesList.Add($"{edadPeatones["rango_edad"][i]} ({Convert.ToInt64(edadPeatones["uno"][i]):0})");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(20, "Rangos de edad más vulnerables (peatones)", string.Join(", ", edadPeatonesList), sw.Elapsed));
+
+        // 21. Distritos con más positivos en alcohol
+        sw.Restart();
+        var distritosAlcohol = Agrupar(df.Filter(df["alcohol"].ElementwiseEquals(true)), "distrito").OrderByDescending("uno", false).Head(5);
+        var distritosAlcoholList = new List<string>();
+        for (int i = 0; i < distritosAlcohol.Rows.Count; i++)
+            distritosAlcoholList.Add($"{distritosAlcohol["distrito"][i]} ({Convert.ToInt64(distritosAlcohol["uno"][i]):0})");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(21, "Distritos con más positivos en alcohol", string.Join(", ", distritosAlcoholList), sw.Elapsed));
+
+        // 22. Accidentes por código de distrito
+        sw.Restart();
+        var porCodigo = ObtenerListaAgrupada(Agrupar(df, "cod_distrito").OrderByDescending("uno", false), "cod_distrito");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(22, "Accidentes por código de distrito", string.Join(", ", porCodigo), sw.Elapsed));
+
+        // 23. Accidentes por año
+        sw.Restart();
+        var porAnio = ObtenerListaAgrupada(Agrupar(df, "anio").OrderByDescending("anio", false), "anio");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(23, "Accidentes por año", string.Join(", ", porAnio), sw.Elapsed));
+
+        // 24. Evolución mensual por año (clave compuesta ya concatenada "2025-06")
+        sw.Restart();
+        var evolucion = ObtenerListaAgrupada(Agrupar(df, "anio_mes").OrderBy("anio_mes", true, false), "anio_mes");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(24, "Evolución mensual por año", string.Join(", ", evolucion), sw.Elapsed));
+
+        // Años distintos del dataset (para las consultas 25, 27, 28, 29)
+        var anios = ObtenerAnios(df);
+
+        // 25. Distrito con más accidentes por año
+        sw.Restart();
+        var distritoTopAnio = new List<string>();
+        foreach (var anio in anios)
+        {
+            var porAnioDf = Agrupar(df.Filter(df["anio"].ElementwiseEquals(anio)), "distrito").OrderByDescending("uno", false).Head(1);
+            if (porAnioDf.Rows.Count > 0)
+                distritoTopAnio.Add($"{anio}: {porAnioDf["distrito"][0]} ({Convert.ToInt64(porAnioDf["uno"][0]):0})");
+        }
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(25, "Distrito con más accidentes por año", string.Join(", ", distritoTopAnio), sw.Elapsed));
+
+        // 26. Tendencia de alcohol por año
+        sw.Restart();
+        var alcoholPorAnio = ObtenerListaAgrupada(
+            Agrupar(df.Filter(df["alcohol"].ElementwiseEquals(true)), "anio").OrderBy("anio", true, false), "anio");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(26, "Tendencia de alcohol por año", string.Join(", ", alcoholPorAnio), sw.Elapsed));
+
+        // 27. Comparativa fin de semana vs entre semana por año
+        sw.Restart();
+        var fdsAnio = new List<string>();
+        foreach (var anio in anios)
+        {
+            var sub = df.Filter(df["anio"].ElementwiseEquals(anio));
+            var fdsCount = sub.Filter(sub["fin_semana"].ElementwiseEquals(true)).Rows.Count;
+            fdsAnio.Add($"{anio}: FDS {fdsCount} / entre semana {sub.Rows.Count - fdsCount}");
+        }
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(27, "Fin de semana vs entre semana por año", string.Join(", ", fdsAnio), sw.Elapsed));
+
+        // 28. Hora pico por año
+        sw.Restart();
+        var horaTopAnio = new List<string>();
+        foreach (var anio in anios)
+        {
+            var porAnioDf = Agrupar(df.Filter(df["anio"].ElementwiseEquals(anio)), "hora").OrderByDescending("uno", false).Head(1);
+            if (porAnioDf.Rows.Count > 0)
+                horaTopAnio.Add($"{anio}: las {Convert.ToInt32(porAnioDf["hora"][0]):00}:00 ({Convert.ToInt64(porAnioDf["uno"][0]):0})");
+        }
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(28, "Hora pico por año", string.Join(", ", horaTopAnio), sw.Elapsed));
+
+        // 29. Lesión más frecuente por año
+        sw.Restart();
+        var lesionTopAnio = new List<string>();
+        foreach (var anio in anios)
+        {
+            var porAnioDf = Agrupar(df.Filter(df["anio"].ElementwiseEquals(anio)), "lesividad").OrderByDescending("uno", false).Head(1);
+            if (porAnioDf.Rows.Count > 0)
+                lesionTopAnio.Add($"{anio}: {porAnioDf["lesividad"][0]} ({Convert.ToInt64(porAnioDf["uno"][0]):0})");
+        }
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(29, "Lesión más frecuente por año", string.Join(", ", lesionTopAnio), sw.Elapsed));
+
+        // 30. Evolución de peatones por año
+        sw.Restart();
+        var peatonesPorAnio = ObtenerListaAgrupada(
+            Agrupar(df.Filter(peatonesMask), "anio").OrderBy("anio", true, false), "anio");
+        sw.Stop();
+        resultados.Add(new ResultadoConsulta(30, "Evolución de peatones por año", string.Join(", ", peatonesPorAnio), sw.Elapsed));
+
         return resultados;
     }
 
@@ -296,4 +596,20 @@ public class AccidentesServices : IAccidentesServices {
             lista.Add($"{dfGroup[colNombre][i]} ({Convert.ToInt64(dfGroup["uno"][i]):0})");
         return lista;
     }
+
+    private static List<int> ObtenerAnios(DataFrame df)
+    {
+        var agrupado = Agrupar(df, "anio");
+        var anios = new List<int>();
+        for (int i = 0; i < agrupado.Rows.Count; i++)
+            anios.Add(Convert.ToInt32(agrupado["anio"][i]));
+        anios.Sort();
+        return anios;
+    }
+
+    private static bool EsPeaton(Accidentes a) =>
+        a.TipoPersona.StartsWith("Peatón", StringComparison.Ordinal);
+
+    private static bool EsFinDeSemana(Accidentes a) =>
+        a.Fecha.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
 }
