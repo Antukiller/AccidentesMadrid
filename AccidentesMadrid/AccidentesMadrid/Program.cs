@@ -136,3 +136,4 @@ static IReadOnlyList<ResultadoConsulta> Promediar(IReadOnlyList<IReadOnlyList<Re
 
 static string Recortar(string texto, int max)
     => texto.Length <= max ? texto : texto[..(max - 1)] + "…";
+

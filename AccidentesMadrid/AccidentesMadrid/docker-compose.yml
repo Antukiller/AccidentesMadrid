@@ -1,0 +1,5 @@
+services:
+  accidentesmadrid:
+    build:
+      context: .
+      dockerfile: Dockerfile
