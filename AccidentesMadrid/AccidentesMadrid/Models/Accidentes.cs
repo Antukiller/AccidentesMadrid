@@ -42,14 +42,4 @@ public class Accidentes {
     public bool PositivaAlcohol { get; init; }
 
     public bool PositivaDroga { get; init; }
-
-    public int Anio => Fecha.Year;
-
-    public int Mes => Fecha.Month;
-
-    public int Dia => Fecha.Day;
-
-    public DayOfWeek DiaSemana => Fecha.DayOfWeek;
-
-    public bool EsFinDeSemana => DiaSemana is DayOfWeek.Saturday or DayOfWeek.Sunday;
 }

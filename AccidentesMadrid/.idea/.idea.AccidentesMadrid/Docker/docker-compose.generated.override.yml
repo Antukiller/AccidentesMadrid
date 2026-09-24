@@ -1,0 +1,20 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  accidentesmadrid:
+    build:
+      context: "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid"
+      dockerfile: "Dockerfile"
+      target: "build"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net10.0/AccidentesMadrid.dll"
+    environment:
+      DOTNET_ENVIRONMENT: "Development"
+    image: "accidentesmadrid:dev"
+    ports: []
+    volumes:
+    - "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid\\AccidentesMadrid:/app:rw"
+    - "D:\\Ejercicios 2DAW\\AccidentesMadrid\\AccidentesMadrid:/src:rw"
+    - "C:\\Users\\antoi\\.nuget\\packages:/root/.nuget/packages"
+    working_dir: "/app"
